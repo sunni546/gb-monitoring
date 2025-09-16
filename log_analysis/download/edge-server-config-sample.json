@@ -1,0 +1,21 @@
+{
+    "remote_log_dir": "",
+    "local_log_dir": "",
+    "final_local_dir": "",
+    "interval_seconds": 0,
+    "folder_mapping": {
+        "": "",
+        "": ""
+    },
+    "work_dir": ["", "", ""],
+    "servers": {
+        "username": "",
+        "password": "",
+        "spot_camera_id": [
+            "", "", "", ""
+        ],
+        "edge_2k_ip": [
+            "", "", "", ""
+        ]
+    }
+}

@@ -1,0 +1,33 @@
+server:
+  http_listen_port: ${PROMTAIL_HTTP_PORT}
+  grpc_listen_port: ${PROMTAIL_GRPC_PORT}
+
+clients:
+  - url: ${LOKI_URL}
+    batchwait: 5s
+
+positions:
+  filename: /var/lib/promtail/promtail-positions.yaml
+
+scrape_configs:
+  - job_name: edge-grpc-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: edge-grpc-logs
+          __path__: /var/log/edge/*/grpc/*.log
+          
+    pipeline_stages:
+      - regex:
+          expression: '\[(?P<timestamp>[^\]]+)\]\[(?P<level>[A-Z]+)\|(?P<module>[^\:]+):(?P<line>\d+)\((?P<function>[^\)]+)\)\]'
+      - labels:
+          level:
+          function:
+      - regex:
+          expression: '.*spot_camr_id:\s?"(?P<spot_camr_id>[^"]+)".*turn_dttn_unix_tm:\s?(?P<turn_dttn_unix_tm>\d+).*'
+      - timestamp:
+          source: "turn_dttn_unix_tm"
+          format: "Unix"
+      - labels:
+          spot_camr_id:

@@ -1,0 +1,44 @@
+server:
+  http_listen_port: ${PROMTAIL_HTTP_PORT}
+  grpc_listen_port: ${PROMTAIL_GRPC_PORT}
+
+clients:
+  - url: ${LOKI_URL}
+    batchwait: 5s
+    timeout: 30s
+
+positions:
+  filename: /var/lib/promtail/promtail-positions.yaml
+
+scrape_configs:
+  - job_name: middleware-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: middleware-logs
+          __path__: /var/log/*.log
+          
+    pipeline_stages:
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
+          max_wait_time: 3s
+      - regex:
+          expression: '(?P<timestamp>[\d\-:\.]+)\s+(?P<level>\w+)\s+(?P<dbms_name>\w+) '
+      - labels:
+          level: 
+          dbms_name: 
+          
+      - regex:
+          expression: 'MERGE INTO (?P<table_name>\S+)'
+      - labels:
+          table_name:
+      - regex:
+          expression: ".*'(?P<spot_camr_id>[^']+)' AS spot_camr_id"
+      - labels:
+          spot_camr_id:
+      - regex:
+          expression: '.* (?P<turn_dttn_unix_tm>\d+) AS turn_dttn_unix_tm'
+      - timestamp:
+          source: "turn_dttn_unix_tm"
+          format: "Unix"

@@ -1,0 +1,31 @@
+services:
+  loki:
+    image: grafana/loki
+    container_name: log_loki
+    ports:
+      - "${LOKI_EXTERNAL_PORT}:${LOKI_HTTP_PORT}"
+    user: "1000:1000"
+    volumes:
+      - ./loki/data:/var/lib/loki
+      - ./loki/config:/etc/loki
+    command: 
+      - -config.file=/etc/loki/loki-config.yml
+      - -config.expand-env=true
+    restart: always
+
+  promtail:
+    image: grafana/promtail
+    container_name: log_promtail_edge
+    depends_on:
+      - loki
+    user: "1000:1000"
+    volumes:
+      - ./promtail/data:/var/lib/promtail
+      - ./promtail/config:/etc/promtail
+      - ./logs:/var/log
+    command: 
+      - -config.file=/etc/promtail/promtail-config.yml
+      - -config.expand-env=true
+    environment:
+      - LOKI_URL=${LOKI_URL}
+    restart: always
